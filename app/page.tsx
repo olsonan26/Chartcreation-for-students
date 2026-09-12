@@ -867,7 +867,7 @@ export default function Home() {
       <nav className="bottom-nav no-print" aria-label="Primary navigation">
         <button className={view === "people" ? "active" : ""} aria-current={view === "people" ? "page" : undefined} type="button" onClick={() => setView("people")}><span>People</span><small>{clients.length}</small></button>
         <button className={view === "chart" ? "active" : ""} aria-current={view === "chart" ? "page" : undefined} type="button" disabled={!selectedClient} onClick={() => setView("chart")}><span>Chart</span><small>{selectedClient ? "Open" : "—"}</small></button>
-        <button className={view === "compare" ? "active" : ""} aria-current={view === "compare" ? "page" : undefined} type="button" onClick={() => setView("compare")}>Compare</button>
+        <button className={view === "compare" ? "active" : ""} aria-current={view === "compare" ? "page" : undefined} type="button" onClick={() => setView("compare")}><span>Compare</span><small>{compareIds.length}</small></button>
       </nav>
 
       {editing && <PersonForm person={editing === "new" ? null : editing} onCancel={() => setEditing(null)} onSave={saveClient} />}
