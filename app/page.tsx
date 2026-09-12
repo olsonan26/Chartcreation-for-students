@@ -294,14 +294,23 @@ function PrintYearSection({
   );
 }
 
-function PrintMonthSection({ report, currentYear }: { report: Report; currentYear: number }) {
-  const ages = [report.age - 1, report.age, report.age + 1];
+function PrintMonthSection({
+  report,
+  currentYear,
+  focusYear,
+}: {
+  report: Report;
+  currentYear: number;
+  focusYear: number;
+}) {
+  const focusAge = report.age + focusYear - currentYear;
+  const ages = [focusAge - 1, focusAge, focusAge + 1];
   const sets = ages.map((age) => age < 0 ? EMPTY_MONTH : report.getMonthSet(age));
   const join = (select: (set: MonthsSet) => string) => sets.map(select).join("");
   const birthYear = currentYear - report.age;
 
   return (
-    <section className="print-month-section" aria-label="Three year monthly cycles">
+    <section className="print-month-section" aria-label={`Three year monthly cycles centered on ${focusYear}`}>
       <PrintCharacterRow value={join((set) => set.essence)} length={36} tone="red" label="ESS" />
       <PrintCharacterRow value={join((set) => set.personalMonthEssence)} length={36} tone="blue" label="PME" />
       <PrintCharacterRow value={join((set) => set.combined)} length={36} tone="cyan" label="MCOM" />
@@ -327,6 +336,19 @@ function PassPrintReport({
   chartDate: string;
 }) {
   const focusStart = Math.max(0, report.age - 14);
+  const birthYear = currentYear - report.age;
+  const minMonthYear = birthYear;
+  const maxMonthYear = Math.max(currentYear + 40, birthYear + 119);
+  const [monthFocusYear, setMonthFocusYear] = useState(currentYear);
+
+  useEffect(() => {
+    setMonthFocusYear(currentYear);
+  }, [client.id, currentYear]);
+
+  function changeMonthFocusYear(year: number) {
+    setMonthFocusYear(Math.min(maxMonthYear, Math.max(minMonthYear, year)));
+  }
+
   return (
     <article className="pass-print-report" aria-label={`Printable Aionis timeline chart for ${client.fullName}`}>
       <div className="print-ornaments" aria-hidden="true">
@@ -373,8 +395,48 @@ function PassPrintReport({
       </section>
       <section className="print-report-panel print-month-panel">
         <h2>Yearly / Monthly Timeline Summary</h2>
+        <div className="focus-controls no-print" aria-label="Monthly timeline year controls">
+          <button
+            type="button"
+            aria-label="Previous year"
+            disabled={monthFocusYear <= minMonthYear}
+            onClick={() => changeMonthFocusYear(monthFocusYear - 1)}
+          >
+            ‹
+          </button>
+          <label
+            style={{
+              display: "grid",
+              gap: 6,
+              alignItems: "center",
+              textAlign: "center",
+              color: "#8b591c",
+              fontSize: 12,
+              fontWeight: 800,
+            }}
+          >
+            <span>Center year: {monthFocusYear}</span>
+            <input
+              type="range"
+              min={minMonthYear}
+              max={maxMonthYear}
+              step={1}
+              value={monthFocusYear}
+              onChange={(event) => changeMonthFocusYear(Number(event.target.value))}
+              aria-label="Choose center year for monthly timeline"
+            />
+          </label>
+          <button
+            type="button"
+            aria-label="Next year"
+            disabled={monthFocusYear >= maxMonthYear}
+            onClick={() => changeMonthFocusYear(monthFocusYear + 1)}
+          >
+            ›
+          </button>
+        </div>
         <div className="print-panel-scroll" tabIndex={0} role="region" aria-label="Three year monthly timeline; scroll horizontally on small screens">
-          <PrintMonthSection report={report} currentYear={currentYear} />
+          <PrintMonthSection report={report} currentYear={currentYear} focusYear={monthFocusYear} />
         </div>
       </section>
       <section className="print-report-panel print-lifetime-panel">
@@ -805,7 +867,7 @@ export default function Home() {
       <nav className="bottom-nav no-print" aria-label="Primary navigation">
         <button className={view === "people" ? "active" : ""} aria-current={view === "people" ? "page" : undefined} type="button" onClick={() => setView("people")}><span>People</span><small>{clients.length}</small></button>
         <button className={view === "chart" ? "active" : ""} aria-current={view === "chart" ? "page" : undefined} type="button" disabled={!selectedClient} onClick={() => setView("chart")}><span>Chart</span><small>{selectedClient ? "Open" : "—"}</small></button>
-        <button className={view === "compare" ? "active" : ""} aria-current={view === "compare" ? "page" : undefined} type="button" onClick={() => setView("compare")}><span>Compare</span><small>{compareIds.length}</small></button>
+        <button className={view === "compare" ? "active" : ""} aria-current={view === "compare" ? "page" : undefined} type="button" onClick={() => setView("compare")}>Compare</button>
       </nav>
 
       {editing && <PersonForm person={editing === "new" ? null : editing} onCancel={() => setEditing(null)} onSave={saveClient} />}
