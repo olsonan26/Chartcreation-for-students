@@ -57,11 +57,22 @@ class AuthRequestError extends Error {
   }
 }
 
-const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim().replace(/\/+$/, "");
+// The Chart Builder project's client-safe Supabase connection is kept as a
+// production fallback so the app still authenticates even if a Vercel project
+// is missing its VITE_* environment variables. These are public client values,
+// not service-role credentials.
+const DEFAULT_SUPABASE_URL = "https://frejicmqhsenqmdmqmfe.supabase.co";
+const DEFAULT_SUPABASE_KEY = "sb_publishable_evdIHrK_2Kw-1DpJjYgkYg_9sBv5W09";
+
+const SUPABASE_URL = (
+  (import.meta.env.VITE_SUPABASE_URL as string | undefined)
+  || DEFAULT_SUPABASE_URL
+).trim().replace(/\/+$/, "");
 const SUPABASE_KEY = (
   (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined)
   || (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)
-)?.trim();
+  || DEFAULT_SUPABASE_KEY
+).trim();
 const AUTH_CONFIGURED = Boolean(SUPABASE_URL && SUPABASE_KEY);
 const SESSION_STORAGE_KEY = "aionis.supabase.auth-session.v1";
 
